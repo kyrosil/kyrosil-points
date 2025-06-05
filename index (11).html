@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kyrosil Points - Giriş</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-br from-purple-800 to-blue-900 text-white min-h-screen flex flex-col items-center justify-center">
+  <div id="root" class="w-full max-w-md p-4"></div>
+  <script src="scripts.js" defer></script>
+  <script type="text/babel">
+    const { useState, useContext } = React;
+
+    // AppProvider ve AppContext kontrolü
+    if (!window.AppProvider || !window.AppContext) {
+      console.error('AppProvider veya AppContext bulunamadı! scripts.js dosyasını kontrol edin.');
+      document.getElementById('root').innerHTML = '<p class="text-red-400">Uygulama yüklenemedi: AppProvider veya AppContext tanımlı değil.</p>';
+    }
+
+    const { AppProvider, AppContext } = window;
+
+    const LoginPage = () => {
+      const { setUser, lang, setLang, error, setError } = useContext(AppContext);
+      const [username, setUsername] = useState('');
+      const [password, setPassword] = useState('');
+
+      const handleLogin = () => {
+        if (username && password) {
+          setUser({ username });
+          window.location.href = 'home.html';
+        } else {
+          setError(translations[lang].errorRequired);
+        }
+      };
+
+      const handleRegister = () => {
+        if (username && password) {
+          setUser({ username });
+          window.location.href = 'home.html';
+        } else {
+          setError(translations[lang].errorRequired);
+        }
+      };
+
+      return (
+        <div className="flex flex-col items-center">
+          <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>" className="logo mb-6" alt="Kyrosil Logo" />
+          <h1 className="text-3xl font-bold mb-4">{translations[lang].welcome}</h1>
+          <select value={lang} onChange={(e) => setLang(e.target.value)} className="mb-4 p-2 rounded bg-gray-800 text-white">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+          </select>
+          {error && <p className="text-red-400 mb-4">{error}</p>}
+          <input type="text" placeholder={translations[lang].username} value={username} onChange={(e) => setUsername(e.target.value)} className="mb-2 p-2 rounded bg-gray-800 text-white w-full" />
+          <input type="password" placeholder={translations[lang].password} value={password} onChange={(e) => setPassword(e.target.value)} className="mb-2 p-2 rounded bg-gray-800 text-white w-full" />
+          <button onClick={handleLogin} className="bg-blue-500 px-4 py-2 rounded mb-2 w-full hover:bg-blue-600">{translations[lang].login}</button>
+          <button onClick={handleRegister} className="bg-green-500 px-4 py-2 rounded w-full hover:bg-green-600">{translations[lang].register}</button>
+        </div>
+      );
+    };
+
+    try {
+      ReactDOM.render(
+        <AppProvider>
+          <LoginPage />
+        </AppProvider>,
+        document.getElementById('root')
+      );
+    } catch (error) {
+      console.error('Render hatası:', error);
+      document.getElementById('root').innerHTML = '<p className="text-red-400">Uygulama yüklenemedi. Hata: ' + error.message + '</p>';
+    }
+  </script>
+</body>
+</html>
