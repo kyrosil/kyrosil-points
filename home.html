@@ -5,129 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kyrosil Points - Ana Sayfa</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gradient-to-br from-purple-800 to-blue-900 text-white min-h-screen flex flex-col items-center">
+<body class="bg-gradient-to-br from-purple-800 to-blue-900 text-white min-h-screen flex flex-col items-center justify-center">
   <div id="root" class="w-full max-w-md p-4"></div>
-  <script src="/scripts.js"></script>
+  <script src="scripts.js" defer></script>
   <script type="text/babel">
-    const { useContext, useState } = React;
+    const { useState, useContext } = React;
+
+    if (!window.AppProvider || !window.AppContext) {
+      console.error('AppProvider veya AppContext bulunamadı! scripts.js dosyasını kontrol edin.');
+      document.getElementById('root').innerHTML = '<p class="text-red-400">Uygulama yüklenemedi: AppProvider veya AppContext tanımlı değil.</p>';
+    }
+
     const { AppProvider, AppContext } = window;
 
     const HomePage = () => {
-      const { user, points, marketItems, lang, setLang, error, setError, wheelSpinning, setWheelSpinning, wheelResult, setWheelResult, redeemCode, setUser } = useContext(AppContext);
+      const { user, points, lang, setLang, error, setError, wheelSpinning, setWheelSpinning, wheelResult, setWheelResult, redeemCode, setUser, setPoints } = useContext(AppContext);
       const [code, setCode] = useState('');
 
-      const spinWheel = async () => {
+      const spinWheel = () => {
         if (wheelSpinning) return;
         setWheelSpinning(true);
-        const rewards = [10, 20, 50, 100, 0, translations[lang].errorCode];
+        const rewards = [10, 20, 50, 100, 0];
         const result = rewards[Math.floor(Math.random() * rewards.length)];
         setTimeout(() => {
-          if (typeof result === 'number') {
-            setPoints(points + result);
-            setWheelResult(translations[lang].successCode.replace('{points}', result));
-          } else {
-            setWheelResult(result);
-          }
+          setPoints(points + result);
+          setWheelResult(result > 0 ? `${translations[lang].successCode.replace('{points}', result)}` : translations[lang].errorCode);
           setWheelSpinning(false);
         }, 2000);
       };
 
-      const handleCodeSubmit = async () => {
-        if (code) {
-          redeemCode(code);
-          setCode('');
-        } else {
-          setError(translations[lang].errorCode);
-        }
+      const handleCodeSubmit = () => {
+        if (code) redeemCode(code);
+        else setError(translations[lang].errorCode);
+        setCode('');
       };
 
+      if (!user) {
+        window.location.href = 'index.html';
+        return null;
+      }
+
       return (
-        <div className="w-full">
-          <div className="flex justify-between items-center mb-4">
-            <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>" className="logo" alt="Kyrosil Points Logo" />
-            <div className="flex items-center">
-              <span className="mr-2 text-sm">{translations[lang].points}: {points}</span>
-              <select
-                value={lang}
-                onChange={(e) => setLang(e.target.value)}
-                className="mr-2 p-1 rounded bg-gray-800 text-white text-sm"
-              >
-                <option value="tr">TR</option>
-                <option value="en">EN</option>
-              </select>
-              <button
-                onClick={() => setUser(null)}
-                className="bg-red-500 px-3 py-1 rounded text-sm hover:bg-red-600"
-              >
-                {translations[lang].logout}
-              </button>
-            </div>
+        <div className="flex flex-col items-center">
+          <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>" className="logo mb-4" alt="Kyrosil Logo" />
+          <div className="flex justify-between w-full mb-4">
+            <span>{translations[lang].points}: {points}</span>
+            <select value={lang} onChange={(e) => setLang(e.target.value)} className="p-1 rounded bg-gray-800 text-white">
+              <option value="tr">TR</option>
+              <option value="en">EN</option>
+            </select>
+            <button onClick={() => setUser(null)} className="bg-red-500 px-2 py-1 rounded hover:bg-red-600">{translations[lang].logout}</button>
           </div>
-          {error && <p className="text-red-600 mb-4">{error}</p>}
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">{translations[lang].market}</h2>
-            <div className="slider-container">
-              <div className="slider">
-                {marketItems.map((item, index) => (
-                  <div key={item.id} className="inline-block px-2">
-                    <div className="bg-gray-600 p-3 rounded w-48">
-                      <p className="text-sm">{item.name}</p>
-                      <p className="text-xs">{item.price} {translations[lang].points}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {error && <p className="text-red-400 mb-4">{error}</p>}
+          <div className="mb-4">
+            <h2 className="text-xl font-bold mb-2">{translations[lang].spinWheel}</h2>
+            <div className={`w-24 h-24 bg-yellow-400 rounded-full flex items-center justify-center ${wheelSpinning ? 'spinning' : ''}`}>Çark</div>
+            <button onClick={spinWheel} disabled={wheelSpinning} className="bg-green-500 px-4 py-2 rounded mt-2 w-full hover:bg-green-600">{translations[lang].spinWheel}</button>
+            {wheelResult && <p className="mt-2">{wheelResult}</p>}
           </div>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">{translations[lang].spinWheel}</h2>
-            <div
-              className={`w-24 h-24 bg-yellow-400 rounded-full flex items-center justify-center mx-auto text-black font-bold ${
-                wheelSpinning ? 'spinning' : ''
-              }`}
-            >
-              Çark
-            </div>
-            <button
-              onClick={spinWheel}
-              disabled={wheelSpinning}
-              className="bg-green-500 px-4 py-2 rounded mt-2 w-full hover:bg-green-600 disabled:opacity-50"
-            >
-              {translations[lang].spinWheel}
-            </button>
-            {wheelResult && <p className="mt-2 text-sm">{wheelResult}</p>}
-          </div>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">{translations[lang].giftCode}</h2>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold mb-2">{translations[lang].giftCode}</h2>
             <div className="flex space-x-2">
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder={translations[lang].giftCode}
-                className="p-2 rounded bg-gray-800 text-white flex-1"
-              />
-              <button
-                onClick={handleCodeSubmit}
-                className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
-              >
-                {translations[lang].submitCode}
-              </button>
+              <input type="text" value={code} onChange={(e) => setCode(e.target.value)} placeholder={translations[lang].giftCode} className="p-2 rounded bg-gray-800 text-white flex-1" />
+              <button onClick={handleCodeSubmit} className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">{translations[lang].submitCode}</button>
             </div>
           </div>
-          <div className="flex space-x-2">
-            <a href="/games.html" className="bg-blue-500 px-4 py-2 rounded flex-1 text-center hover:bg-blue-600">
-              {translations[lang].games}
-            </a>
-            <a href="/market.html" className="bg-blue-500 px-4 py-2 rounded flex-1 text-center hover:bg-blue-600">
-              {translations[lang].market}
-            </a>
+          <div className="flex space-x-2 w-full">
+            <a href="games.html" className="bg-blue-500 px-4 py-2 rounded w-full text-center hover:bg-blue-600">{translations[lang].games}</a>
+            <a href="market.html" className="bg-blue-500 px-4 py-2 rounded w-full text-center hover:bg-blue-600">{translations[lang].market}</a>
           </div>
         </div>
       );
@@ -142,7 +93,7 @@
       );
     } catch (error) {
       console.error('Render hatası:', error);
-      document.getElementById('root').innerHTML = '<p className="text-red-400">Uygulama yüklenemedi. Lütfen sayfayı yenileyin.</p>';
+      document.getElementById('root').innerHTML = '<p className="text-red-400">Uygulama yüklenemedi. Hata: ' + error.message + '</p>';
     }
   </script>
 </body>
