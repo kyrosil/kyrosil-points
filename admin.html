@@ -6,63 +6,42 @@
   <title>Kyrosil Points Admin</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col items-center">
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col items-center justify-center">
   <div class="w-full max-w-md p-4">
     <h1 class="text-2xl font-bold mb-4">Kyrosil Points Admin</h1>
     <div id="auth">
-      <input
-        type="password"
-        id="admin-password"
-        placeholder="Admin Şifresi"
-        class="mb-2 p-2 rounded bg-gray-400 text-white w-full"
-      />
-      <button
-        onclick="authenticate()"
-        class="bg-blue-600 px-4 py-2 rounded w-full"
-        >
-        Giriş
-      </button>
-      <p id="error" class="text-red-600 mt-4 hidden"></p>
+      <input type="password" id="admin-password" placeholder="Admin Şifresi" class="mb-2 p-2 rounded bg-gray-200 w-full" />
+      <button onclick="authenticate()" class="bg-blue-500 px-4 py-2 rounded w-full hover:bg-blue-600 text-white">Giriş</button>
+      <p id="error" class="text-red-500 mt-2 hidden"></p>
     </div>
-    <div id="users" className="hidden w-full"></div>
-    <div id="codes" className="hidden w-full mt-4"></div>
+    <div id="users" class="hidden mt-4">
+      <h2 class="text-xl font-bold mb-2">Kullanıcılar</h2>
+      <p>Google Sheets API bağlanmadı, kullanıcılar görüntülenemiyor.</p>
+    </div>
+    <div id="codes" class="hidden mt-4">
+      <h2 class="text-xl font-bold mb-2">Hediye Kodları</h2>
+      <input id="new-code" type="text" placeholder="Yeni Kod" class="p-2 rounded bg-gray-200 w-full mb-2" />
+      <input id="new-points" type="number" placeholder="Puan" class="p-2 rounded bg-gray-200 w-full mb-2" />
+      <button onclick="createCode()" class="bg-blue-500 px-4 py-2 rounded w-full hover:bg-blue-600 text-white">Kod Oluştur</button>
+      <p class="mt-2">Google Sheets API bağlanmadı, kodlar görüntülenemiyor.</p>
+    </div>
   </div>
   <script>
     const adminPassword = 'kyrosil2025';
 
     function authenticate() {
-      const passwordInput = document.getElementById('admin-password').value;
-      const errorDiv = document.getElementById('error');
-      if (passwordInput === adminPassword) {
+      const password = document.getElementById('admin-password').value;
+      const error = document.getElementById('error');
+      if (password === adminPassword) {
         document.getElementById('auth').classList.add('hidden');
         document.getElementById('users').classList.remove('hidden');
         document.getElementById('codes').classList.remove('hidden');
-        loadUsers();
-        loadCodes();
       } else {
-        errorDiv.textContent = 'Yanlış şifre!';
-        errorDiv.classList.remove('hidden');
+        error.textContent = 'Yanlış şifre!';
+        error.classList.remove('hidden');
       }
-    }
-
-    function loadUsers() {
-      const usersDiv = document.getElementById('users');
-      usersDiv.innerHTML = '<h2 class="text-xl font-semibold mb-2">Kullanıcılar</h2><p>Google Sheets API bağlanmadı, kullanıcılar görüntülenemiyor.</p>';
-    }
-
-    function loadCodes() {
-      const codesDiv = document.getElementById('codes');
-      codesDiv.innerHTML = `
-        <h2 class="text-xl font-semibold mb-2">Hediye Kodları</h2>
-        <div class="mb-2">
-          <input id="new-code" type="text" placeholder="Yeni Kod" class="p-1 bg-gray-400 rounded w-full mr-2">
-          <input id="new-points" type="number" placeholder="Puan" class="p-1 bg-gray-400 rounded w-full mr-2">
-          <button onclick="createCode()" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">Create</button>
-        </div>
-        <p>Google Sheets API bağlanmadı, kodlar görüntülenemiyor.</p>
-      `;
     }
 
     function createCode() {
