@@ -4,27 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kyrosil Points - Market</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="bg-gradient-to-br from-purple-800 to-blue-900 text-white min-h-screen flex flex-col items-center">
   <div id="root" class="w-full max-w-md p-4"></div>
-  <script src="scripts.js"></script>
+  <script src="/scripts.js"></script>
   <script type="text/babel">
     const { useContext } = React;
+    const { AppProvider, AppContext } = window;
 
     const MarketPage = () => {
-      const { user, points, setPoints, purchasedItems, setPurchasedItems, lang, setLang, error, setError, marketItems, saveUserData, streak, lastLogin } = useContext(AppContext);
+      const { user, points, setPoints, purchasedItems, setPurchasedItems, lang, setLang, error, setError, marketItems, saveUserData, setUser } = useContext(AppContext);
 
-      const buyItem = async (item) => {
+      const buyItem = (item) => {
         if (points >= item.price) {
           setPoints(points - item.price);
           const newPurchasedItems = [...purchasedItems, item.name];
           setPurchasedItems(newPurchasedItems);
-          await saveUserData(user.username, points - item.price, newPurchasedItems, streak, lastLogin);
+          saveUserData();
           alert(`${item.name} satın alındı!`);
         } else {
           setError(translations[lang].errorPoints);
@@ -34,7 +36,7 @@
       return (
         <div className="w-full">
           <div className="flex justify-between items-center mb-4">
-            <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>" className="logo" alt="Kyrosil Points Logo" />
+            <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>" class="logo" alt="Kyrosil Points Logo">
             <div className="flex items-center">
               <span className="mr-2 text-sm">{translations[lang].points}: {points}</span>
               <select
@@ -44,25 +46,25 @@
               >
                 <option value="tr">TR</option>
                 <option value="en">EN</option>
-              </select>
+              >
               <button
                 onClick={() => setUser(null)}
-                className="bg-red-500 px-3 py-1 rounded text-sm hover:bg-red-600"
-              >
+                className="bg-red-600 px-3 py-1 rounded text-sm"
+                >
                 {translations[lang].logout}
               </button>
             </div>
           </div>
-          {error && <p className="text-red-400 mb-2">{error}</p>}
+          {error && <p className="text-red-600 mb-4">{error}</p>}
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-2">{translations[lang].market}</h2>
             <div className="space-y-2">
               {marketItems.map((item) => (
-                <div key={item.id} className="bg-gray-800 p-3 rounded">
+                <div key={item.id} className="bg-gray-600 p-4 rounded">
                   <p className="text-sm">{item.name} - {item.price} {translations[lang].points}</p>
                   <button
                     onClick={() => buyItem(item)}
-                    className="bg-yellow-500 px-3 py-1 rounded mt-1 text-sm hover:bg-yellow-600"
+                    className="bg-blue-500 px-3 py-2 rounded mt-2 w-full hover:bg-blue-600"
                   >
                     Satın Al
                   </button>
@@ -70,9 +72,9 @@
               ))}
             </div>
             {purchasedItems.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold">Kazandığın Hediyeler</h3>
-                <ul className="list-disc pl-4 text-sm">
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold">Kazandınız Hediyeler</h3>
+                <ul className="list-disc pl-4">
                   {purchasedItems.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}
@@ -80,19 +82,24 @@
               </div>
             )}
           </div>
-          <a href="home.html" className="bg-blue-500 px-4 py-2 rounded w-full text-center hover:bg-blue-600">
+          <a href="/" className="bg-blue-600 px-4 py-3 rounded w-full text-center">
             {translations[lang].welcome}
           </a>
         </div>
       );
     };
 
-    ReactDOM.render(
-      <AppProvider>
-        <MarketPage />
-      </AppProvider>,
-      document.getElementById('root')
-    );
+    try {
+      ReactDOM.render(
+        <AppProvider>
+          <MarketPage />
+        </AppProvider>,
+        document.getElementById('root')
+      );
+    } catch (error) {
+      console.error('Hata:', error);
+      document.getElementById('root').textContent = 'Uygulama yüklenemedi. Lütfen sayfayı yenileyin veya';
+    }
   </script>
 </body>
 </html>
