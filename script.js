@@ -68,22 +68,12 @@ const AppProvider = ({ children }) => {
   const [gameResult, setGameResult] = useState('');
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [wheelResult, setWheelResult] = useState('');
-  const [marketItems, setMarketItems] = useState([
-    { id: 1, name: lang === 'tr' ? 'Ücretsiz Kahve (Sponsor: Kahve Dükkanı)' : 'Free Coffee (Sponsor: Coffee Shop)', price: 50 },
-    { id: 2, name: lang === 'tr' ? 'Marka Tişört (Sponsor: Moda Mağazası)' : 'Brand T-Shirt (Sponsor: Fashion Store)', price: 150 },
-    { id: 3, name: lang === 'tr' ? '%20 İndirim Kodu (Sponsor: Online Mağaza)' : '20% Discount Code (Sponsor: Online Store)', price: 100 },
+  const [marketItems] = useState([
+    { id: 1, name: lang === 'tr' ? 'Ücretsiz Kahve' : 'Free Coffee', price: 50 },
+    { id: 2, name: lang === 'tr' ? 'Marka Tişört' : 'Brand T-Shirt', price: 150 },
+    { id: 3, name: lang === 'tr' ? '%20 İndirim' : '20% Discount', price: 100 },
   ]);
 
-  // Dil değiştiğinde market öğelerini güncelle
-  useEffect(() => {
-    setMarketItems([
-      { id: 1, name: lang === 'tr' ? 'Ücretsiz Kahve (Sponsor: Kahve Dükkanı)' : 'Free Coffee (Sponsor: Coffee Shop)', price: 50 },
-      { id: 2, name: lang === 'tr' ? 'Marka Tişört (Sponsor: Moda Mağazası)' : 'Brand T-Shirt (Sponsor: Fashion Store)', price: 150 },
-      { id: 3, name: lang === 'tr' ? '%20 İndirim Kodu (Sponsor: Online Mağaza)' : '20% Discount Code (Sponsor: Online Store)', price: 100 },
-    ]);
-  }, [lang]);
-
-  // Günlük ödül kontrolü
   useEffect(() => {
     if (user) {
       checkDailyReward();
@@ -108,11 +98,7 @@ const AppProvider = ({ children }) => {
   };
 
   const redeemCode = (code) => {
-    // Geçici kod kontrolü (API olmadan)
-    const validCodes = {
-      KYROSIL50: 50,
-      KYROSIL100: 100,
-    };
+    const validCodes = { KYROSIL50: 50, KYROSIL100: 100 };
     if (validCodes[code]) {
       setPoints(points + validCodes[code]);
       setError(translations[lang].successCode.replace('{points}', validCodes[code]));
@@ -122,22 +108,18 @@ const AppProvider = ({ children }) => {
   };
 
   const saveUserData = () => {
-    // API olmadan yerel olarak veri saklama simülasyonu
     console.log('Veri kaydedildi:', { user, points, purchasedItems, streak, lastLogin });
   };
 
   return (
-    <AppContext.Provider value={{
-      user, setUser, points, setPoints, purchasedItems, setPurchasedItems,
-      streak, setStreak, lastLogin, setLastLogin, lang, setLang,
-      error, setError, gameResult, setGameResult, wheelSpinning, setWheelSpinning,
-      wheelResult, setWheelResult, marketItems, saveUserData, redeemCode
-    }}>
+    <AppContext.Provider value={{ user, setUser, points, setPoints, purchasedItems, setPurchasedItems, streak, setStreak, lastLogin, setLastLogin, lang, setLang, error, setError, gameResult, setGameResult, wheelSpinning, setWheelSpinning, wheelResult, setWheelResult, marketItems, saveUserData, redeemCode }}>
       {children}
     </AppContext.Provider>
   );
 };
 
-// AppProvider'ı dışa aktar
-window.AppProvider = AppProvider;
-window.AppContext = AppContext;
+// Global erişim için
+if (typeof window !== 'undefined') {
+  window.AppProvider = AppProvider;
+  window.AppContext = AppContext;
+}
