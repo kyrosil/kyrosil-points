@@ -1,1 +1,172 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kyrosil Points Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-br from-purple-800 to-blue-900 text-white min-h-screen flex flex-col items-center">
+  <div class="w-full max-w-md p-4">
+    <h1 class="text-2xl font-bold mb-4">Kyrosil Points Admin</h1>
+    <div id="auth">
+      <input
+        type="password"
+        id="adminPassword"
+        placeholder="Admin Şifresi"
+        class="mb-2 p-2 rounded bg-gray-800 text-white w-full"
+      />
+      <button
+        onclick="authenticate()"
+        class="bg-blue-500 px-4 py-2 rounded w-full hover:bg-blue-600"
+      >
+        Giriş Yap
+      </button>
+      <p id="error" class="text-red-400 mt-2 hidden"></p>
+    </div>
+    <div id="users" class="hidden w-full"></div>
+    <div id="codes" class="hidden w-full mt-4"></div>
+  </div>
+  <script>
+    const spreadsheetId = 'YOUR_SPREADSHEET_ID';
+    const apiKey = 'YOUR_API_KEY';
+    const adminPassword = 'kyrosil2025';
 
+    async function authenticate() {
+      const passwordInput = document.getElementById('adminPassword').value;
+      const errorEl = document.getElementById('error');
+      if (passwordInput === adminPassword) {
+        document.getElementById('auth').classList.add('hidden');
+        document.getElementById('users').classList.remove('hidden');
+        document.getElementById('codes').classList.remove('hidden');
+        loadUsers();
+        loadCodes();
+      } else {
+        errorEl.textContent = 'Yanlış şifre!';
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    async function loadUsers() {
+      const range = 'Sheet1!A:F';
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+      const errorEl = document.getElementById('error');
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Veri yüklenemedi: ' + response.status);
+        const data = await response.json();
+        const users = data.values.slice(1);
+        const usersDiv = document.getElementById('users');
+        usersDiv.innerHTML = '<h2 class="text-xl font-semibold mb-2">Kullanıcılar</h2>';
+        if (users.length === 0) {
+          usersDiv.innerHTML += '<p>Kayıtlı kullanıcı yok.</p>';
+          return;
+        }
+        users.forEach(([username, points, purchasedItems, streak, lastLogin], index) => {
+          usersDiv.innerHTML += `
+            <div class="bg-gray-800 p-3 rounded mb-2">
+              <p><strong>Kullanıcı:</strong> ${username}</p>
+              <p><strong>Puan:</strong> <input id="points-${index}" type="number" value="${points}" class="p-1 bg-gray-700 rounded w-20"></p>
+              <p><strong>Ödüller:</strong> <input id="items-${index}" value="${purchasedItems ? purchasedItems.replace(/"/g, '"') : ''}" class="p-1 bg-gray-700 rounded w-full"></p>
+              <p><strong>Giriş Serisi:</strong> ${streak}</p>
+              <p><strong>Son Giriş:</strong> ${lastLogin}</p>
+              <button onclick="updateUser(${index}, '${username}')" class="bg-green-500 px-3 py-1 rounded mt-2 hover:bg-green-600">Güncelle</button>
+            </div>
+          `;
+        });
+      } catch (error) {
+        errorEl.textContent = 'Veri yüklenemedi: ' + error.message;
+        errorEl.classList.remove('hidden');
+        console.error('Veri çekme hatası:', error);
+      }
+    }
+
+    async function updateUser(index, username) {
+      const newPoints = document.getElementById(`points-${index}`).value;
+      const newItems = document.getElementById(`items-${index}`).value;
+      const range = `Sheet1!A${index + 2}:F${index + 2}`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?valueInputOption=RAW&key=${apiKey}`;
+      const errorEl = document.getElementById('error');
+      try {
+        const response = await fetch(url, {
+          method: 'PUT',
+          body: JSON.stringify({ values: [[username, newPoints, newItems, streak, lastLogin, new Date().toISOString()]] }),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) throw new Error('Güncelleme başarısız: ' + response.status);
+        alert(`${username} için veriler güncellendi!`);
+        loadUsers();
+      } catch (error) {
+        errorEl.textContent = 'Güncelleme hatası: ' + error.message;
+        errorEl.classList.remove('hidden');
+        console.error('Güncelleme hatası:', error);
+      }
+    }
+
+    async function loadCodes() {
+      const range = 'Codes!A:C';
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+      const errorEl = document.getElementById('error');
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Kodlar yüklenemedi: ' + response.status);
+        const data = await response.json();
+        const codes = data.values.slice(1);
+        const codesDiv = document.getElementById('codes');
+        codesDiv.innerHTML = `
+          <h2 class="text-xl font-semibold mb-2">Hediye Kodları</h2>
+          <div class="mb-2">
+            <input id="newCode" type="text" placeholder="Yeni Kod" class="p-1 bg-gray-700 rounded w-1/2 mr-2">
+            <input id="newPoints" type="number" placeholder="Puan" class="p-1 bg-gray-700 rounded w-1/4 mr-2">
+            <button onclick="createCode()" class="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600">Oluştur</button>
+          </div>
+        `;
+        if (codes.length === 0) {
+          codesDiv.innerHTML += '<p>Kayıtlı kod yok.</p>';
+          return;
+        }
+        codes.forEach(([code, points, status], index) => {
+          codesDiv.innerHTML += `
+            <div class="bg-gray-800 p-3 rounded mb-2">
+              <p><strong>Kod:</strong> ${code}</p>
+              <p><strong>Puan:</strong> ${points}</p>
+              <p><strong>Durum:</strong> ${status}</p>
+            </div>
+          `;
+        });
+      } catch (error) {
+        errorEl.textContent = 'Kodlar yüklenemedi: ' + error.message;
+        errorEl.classList.remove('hidden');
+        console.error('Kod yükleme hatası:', error);
+      }
+    }
+
+    async function createCode() {
+      const code = document.getElementById('newCode').value;
+      const points = document.getElementById('newPoints').value;
+      if (!code || !points) {
+        document.getElementById('error').textContent = 'Kod ve puan gerekli!';
+        document.getElementById('error').classList.remove('hidden');
+        return;
+      }
+      const range = 'Codes!A:C';
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:append?valueInputOption=RAW&key=${apiKey}`;
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          body: JSON.stringify({ values: [[code, points, 'valid']] }),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) throw new Error('Kod oluşturma başarısız: ' + response.status);
+        alert('Kod oluşturuldu!');
+        loadCodes();
+      } catch (error) {
+        document.getElementById('error').textContent = 'Kod oluşturma hatası: ' + error.message;
+        document.getElementById('error').classList.remove('hidden');
+        console.error('Kod oluşturma hatası:', error);
+      }
+    }
+  </script>
+</body>
+</html>
