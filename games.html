@@ -1,199 +1,142 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-      <meta charset="viewport" content="width=device-width, initial-scale=1.0
-      <meta charset="UTF-8">
-      <title>Kyrosil Points - Oyunlar</title>
-      <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
-      <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
-      <script src="https://cdn.tailwindcss.com"></script>
-      <link rel="stylesheet" href="/styles.css">
-    </head>
-    <body class="bg-gradient-to-br from-purple-800 to-blue-900 text-white min-h-screen flex flex-col items-center">
-      <div id="root" class="w-full max-w-md p-4"></div>
-      <script src="/scripts.js"></script>
-      <script type="text/babel">
-        const { useState, useContext } = React;
-        const { AppProvider, AppContext } = window;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kyrosil Points - Oyunlar</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-br from-purple-800 to-blue-900 text-white min-h-screen flex flex-col items-center justify-center">
+  <div id="root" class="w-full max-w-md p-4"></div>
+  <script src="scripts.js" defer></script>
+  <script type="text/babel">
+    const { useState, useContext } = React;
 
-        const GamesPage = () => {
-          const { user, points, setPoints, gameResult, setGameResult, purchasedItems, lang, setLang, error, setError, saveUserData, streak, lastLogin, setUser } = useContext(AppContext);
-          const [betAmount, setBetAmount] = useState('');
-          const [guessNumber, setGuessNumber] = useState('');
+    if (!window.AppProvider || !window.AppContext) {
+      console.error('AppProvider veya AppContext bulunamadı! scripts.js dosyasını kontrol edin.');
+      document.getElementById('root').innerHTML = '<p class="text-red-400">Uygulama yüklenemedi: AppProvider veya AppContext tanımlı değil.</p>';
+    }
 
-          const playGameRPS = async (playerChoice) => {
-            const bet = parseInt(betAmount);
-            if (!bet || bet <= 0 || bet > points) {
-              setGameResult(translations[lang].errorPoints);
-              return;
-            }
-            setPoints(points - bet);
-            const choices = ['Taş', 'Kağıt', 'Makas'];
-            const computerChoice = choices[Math.floor(Math.random() * 3)];
-            if (playerChoice === computerChoice) {
-              setGameResult(`${translations[lang].rps}: Berabere! Sen: ${playerChoice}, Bilgisayar: ${computerChoice}`);
-              await saveUserData();
-            } else if (
-              (playerChoice === 'Taş' && computerChoice === 'Makas') ||
-              (playerChoice === 'Kağıt' && computerChoice === 'Taş') ||
-              (playerChoice === 'Makas' && computerChoice === 'Kağıt')
-            ) {
-              setGameResult(`${translations[lang].rps}: Kazandın! Sen: ${playerChoice}, Bilgisayar: ${computerChoice}`);
-              setPoints(points - bet + bet * 2);
-              await saveUserData();
-            } else {
-              setGameResult(`${translations[lang].rps}: Kaybettin! Sen: ${playerChoice}, Bilgisayar: ${computerChoice}`);
-              await saveUserData();
-            }
-          };
+    const { AppProvider, AppContext } = window;
 
-          const playGameDice = async () => {
-            const bet = parseInt(betAmount);
-            if (!bet || bet <= 0 || bet > points) {
-              setGameResult(translations[lang].errorPoints);
-              return;
-            }
-            setPoints(points - bet);
-            const dice = Math.floor(Math.random() * 6) + 1;
-            if (dice > 4) {
-              setGameResult(`${translations[lang].dice}: Kazandın! Zar: ${dice}`);
-              setPoints(points - bet + bet * 2);
-              await saveUserData();
-            } else {
-              setGameResult(`${translations[lang].dice}: Kaybettin! Zar: ${dice}`);
-              await saveUserData();
-            }
-          };
+    const GamesPage = () => {
+      const { user, points, setPoints, gameResult, setGameResult, lang, setLang, error, setError, saveUserData, setUser } = useContext(AppContext);
+      const [betAmount, setBetAmount] = useState('');
+      const [guessNumber, setGuessNumber] = useState('');
 
-          const playGameGuess = async () => {
-            const bet = parseInt(betAmount);
-            if (!bet || bet <= 0 || bet > points) {
-              setGameResult(translations[lang].errorPoints);
-              return;
-            }
-            if (!guessNumber || guessNumber < 1 || guessNumber > 10) {
-              setGameResult(translations[lang].errorGuess);
-              return;
-            }
-            setPoints(points - bet);
-            const target = Math.floor(Math.random() * 10) + 1;
-            if (parseInt(guessNumber) === target) {
-              setGameResult(`${translations[lang].guess}: Kazandın! Hedef: ${target}`);
-              setPoints(points - bet + bet * 2);
-              await saveUserData();
-            } else {
-              setGameResult(`${translations[lang].guess}: Kaybettin! Hedef: ${target}`);
-              await saveUserData();
-            }
-            setGuessNumber('');
-          };
-
-          return (
-            <div className="w-full">
-              <div className="flex justify-between items-center mb-4">
-                <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>" class="logo" alt="Kyrosil Points Logo">
-                <div className="flex items-center">
-                  <span className="mr-2 text-sm">{translations[lang].points}: {points}</span>
-                  <select
-                    value={lang}
-                    onChange={(e) => setLang(e.target.value)}
-                    className="mr-2 p-1 rounded bg-gray-800 text-white text-sm"
-                    >
-                    <option value="tr">TR</option>
-                    <option value="en">EN</option>
-                  </select>
-                  <button
-                    onClick={() => setUser(null)}
-                    className="bg-red-600 px-3 py-1 rounded"
-                    >
-                    {translations[lang].logout}
-                  </button>
-                </div>
-              </div>
-              {error && <p className="text-red-600 mb-4">{error}</p>}
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-2">{translations[lang].games}</h2>
-                <input
-                    type="number"
-                    value={betAmount}
-                    onChange={(e) => setBetAmount(e.target.value)}
-                    placeholder={translations[lang].betAmount}
-                    className="mb-2 p-2 rounded bg-gray-800 text-white w-full"
-                  />
-                <div className="space-y-2">
-                  <div>
-                    <h3 className="text-lg font-semibold">{translations[lang].rps}</h3>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => playRPS('Taş')}
-                        className="bg-blue-600 px-3 py-2 rounded flex-1 hover:bg-blue-700"
-                      >
-                        Taş
-                      </button>
-                      <button
-                        onClick={() => playRPS('Kağıt')}
-                        className="bg-blue-600 px-3 py-2 rounded flex-1 hover:bg-blue-700"
-                      >
-                        Kağıt
-                      </button>
-                      <button
-                        className={() => playRPS('Makas')}
-                        onClick="bg-blue-600 px-3 py-2 rounded flex-1 hover:bg-blue-700"
-                        >
-                        Makas
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">{translations[lang].dice}</h3>
-                    <button
-                      onClick={playDice}
-                      className="bg-blue-600 px-4 py-2 rounded w-full hover:bg-blue-500"
-                    >
-                      {translations[lang].play}
-                    </button>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">{translations[lang].guess}</h3>
-                    <div className="flex space-x-2">
-                      <input
-                        type="number"
-                        value={guessNumber}
-                        onChange={(e) => setGuessNumber(e.target.value)}
-                        placeholder={translations[lang].guessNumber}
-                        className="p Cooker-2 px-4 py-2 rounded bg-gray-800 text-white flex-1"
-                        />
-                      <button
-                        onClick={playGuess}
-                        className="bg-blue-600 px-3 py-2 rounded hover:bg-blue-700"
-                      >
-                        {translations[lang].play}
-                      </button>
-                    </div>
-                  </div>
-                  {gameResult && <p className="mt-4 text-sm">{gameResult}</p>}
-                </div>
-              </div>
-              <a href="/" className="bg-blue-600 px-4 py-3 rounded w-full text-center hover:bg-blue-700">
-                {translations[lang].welcome}
-              </a>
-            </div>
-        );
-        };
-
-        try {
-          ReactDOM.render(
-            <AppProvider>
-              <GamesPage />
-            </AppProvider>
-        document.getElementById('root')
-        );
-        } catch (error) {
-          console.error('Hata:', error.message);
-          document.getElementById('root').textContent = 'Uygulama yüklenemedi. Lütfen sayfayı yenileyin veya';
+      const playRPS = (choice) => {
+        const bet = parseInt(betAmount);
+        if (!bet || bet <= 0 || bet > points) {
+          setGameResult(translations[lang].errorPoints);
+          return;
         }
-      </script>
-    </body>
+        setPoints(points - bet);
+        const choices = ['Taş', 'Kağıt', 'Makas'];
+        const computer = choices[Math.floor(Math.random() * 3)];
+        if (choice === computer) setGameResult(`${translations[lang].rps}: Berabere! Sen: ${choice}, Bilgisayar: ${computer}`);
+        else if ((choice === 'Taş' && computer === 'Makas') || (choice === 'Kağıt' && computer === 'Taş') || (choice === 'Makas' && computer === 'Kağıt')) {
+          setGameResult(`${translations[lang].rps}: Kazandın! Sen: ${choice}, Bilgisayar: ${computer}`);
+          setPoints(points + bet);
+        } else {
+          setGameResult(`${translations[lang].rps}: Kaybettin! Sen: ${choice}, Bilgisayar: ${computer}`);
+        }
+        saveUserData();
+      };
+
+      const playDice = () => {
+        const bet = parseInt(betAmount);
+        if (!bet || bet <= 0 || bet > points) {
+          setGameResult(translations[lang].errorPoints);
+          return;
+        }
+        setPoints(points - bet);
+        const dice = Math.floor(Math.random() * 6) + 1;
+        if (dice > 3) {
+          setGameResult(`${translations[lang].dice}: Kazandın! Zar: ${dice}`);
+          setPoints(points + bet);
+        } else {
+          setGameResult(`${translations[lang].dice}: Kaybettin! Zar: ${dice}`);
+        }
+        saveUserData();
+      };
+
+      const playGuess = () => {
+        const bet = parseInt(betAmount);
+        if (!bet || bet <= 0 || bet > points) {
+          setGameResult(translations[lang].errorPoints);
+          return;
+        }
+        if (!guessNumber || guessNumber < 1 || guessNumber > 10) {
+          setGameResult(translations[lang].errorGuess);
+          return;
+        }
+        setPoints(points - bet);
+        const target = Math.floor(Math.random() * 10) + 1;
+        if (parseInt(guessNumber) === target) {
+          setGameResult(`${translations[lang].guess}: Kazandın! Hedef: ${target}`);
+          setPoints(points + bet);
+        } else {
+          setGameResult(`${translations[lang].guess}: Kaybettin! Hedef: ${target}`);
+        }
+        setGuessNumber('');
+        saveUserData();
+      };
+
+      if (!user) {
+        window.location.href = 'index.html';
+        return null;
+      }
+
+      return (
+        <div className="flex flex-col items-center">
+          <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>" className="logo mb-4" alt="Kyrosil Logo" />
+          <div className="flex justify-between w-full mb-4">
+            <span>{translations[lang].points}: {points}</span>
+            <select value={lang} onChange={(e) => setLang(e.target.value)} className="p-1 rounded bg-gray-800 text-white">
+              <option value="tr">TR</option>
+              <option value="en">EN</option>
+            </select>
+            <button onClick={() => setUser(null)} className="bg-red-500 px-2 py-1 rounded hover:bg-red-600">{translations[lang].logout}</button>
+          </div>
+          {error && <p className="text-red-400 mb-4">{error}</p>}
+          <div className="mb-4">
+            <input type="number" value={betAmount} onChange={(e) => setBetAmount(e.target.value)} placeholder={translations[lang].betAmount} className="mb-2 p-2 rounded bg-gray-800 text-white w-full" />
+            <h2 className="text-xl font-bold mb-2">{translations[lang].rps}</h2>
+            <div className="flex space-x-2 mb-2">
+              <button onClick={() => playRPS('Taş')} className="bg-blue-500 px-4 py-2 rounded flex-1 hover:bg-blue-600">Taş</button>
+              <button onClick={() => playRPS('Kağıt')} className="bg-blue-500 px-4 py-2 rounded flex-1 hover:bg-blue-600">Kağıt</button>
+              <button onClick={() => playRPS('Makas')} className="bg-blue-500 px-4 py-2 rounded flex-1 hover:bg-blue-600">Makas</button>
+            </div>
+            <h2 className="text-xl font-bold mb-2">{translations[lang].dice}</h2>
+            <button onClick={playDice} className="bg-blue-500 px-4 py-2 rounded w-full mb-2 hover:bg-blue-600">{translations[lang].play}</button>
+            <h2 className="text-xl font-bold mb-2">{translations[lang].guess}</h2>
+            <div className="flex space-x-2">
+              <input type="number" value={guessNumber} onChange={(e) => setGuessNumber(e.target.value)} placeholder={translations[lang].guessNumber} className="p-2 rounded bg-gray-800 text-white flex-1" />
+              <button onClick={playGuess} className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">{translations[lang].play}</button>
+            </div>
+            {gameResult && <p className="mt-4">{gameResult}</p>}
+          </div>
+          <a href="home.html" className="bg-blue-500 px-4 py-2 rounded w-full text-center hover:bg-blue-600">{translations[lang].welcome}</a>
+        </div>
+      );
+    };
+
+    try {
+      ReactDOM.render(
+        <AppProvider>
+          <GamesPage />
+        </AppProvider>,
+        document.getElementById('root')
+      );
+    } catch (error) {
+      console.error('Render hatası:', error);
+      document.getElementById('root').innerHTML = '<p className="text-red-400">Uygulama yüklenemedi. Hata: ' + error.message + '</p>';
+    }
+  </script>
+</body>
 </html>
