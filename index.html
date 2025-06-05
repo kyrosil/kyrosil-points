@@ -1,21 +1,22 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kyrosil Points</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="bg-gradient-to-br from-purple-800 to-blue-900 text-white min-h-screen flex flex-col items-center">
   <div id="root" class="w-full max-w-md p-4"></div>
-  <script src="scripts.js"></script>
+  <script src="/scripts.js"></script>
   <script type="text/babel">
     const { useState, useContext } = React;
+    const { AppProvider, AppContext } = window;
 
     const LoginPage = () => {
       const { setUser, lang, setLang, error, setError } = useContext(AppContext);
@@ -27,7 +28,7 @@
           setUser({ username });
           setUsername('');
           setPassword('');
-          window.location.href = 'home.html';
+          window.location.href = '/home.html';
         } else {
           setError(translations[lang].errorRequired);
         }
@@ -38,7 +39,7 @@
           setUser({ username });
           setUsername('');
           setPassword('');
-          window.location.href = 'home.html';
+          window.location.href = '/home.html';
         } else {
           setError(translations[lang].errorRequired);
         }
@@ -89,12 +90,17 @@
       );
     };
 
-    ReactDOM.render(
-      <AppProvider>
-        <LoginPage />
-      </AppProvider>,
-      document.getElementById('root')
-    );
+    try {
+      ReactDOM.render(
+        <AppProvider>
+          <LoginPage />
+        </AppProvider>,
+        document.getElementById('root')
+      );
+    } catch (error) {
+      console.error('Render hatası:', error);
+      document.getElementById('root').innerHTML = '<p className="text-red-400">Uygulama yüklenemedi. Lütfen sayfayı yenileyin.</p>';
+    }
   </script>
 </body>
 </html>
