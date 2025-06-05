@@ -1,5 +1,11 @@
+if (typeof React === 'undefined') {
+  console.error('React yüklenmedi! Lütfen HTML dosyasındaki script sırasını kontrol edin.');
+  throw new Error('React yüklenmedi!');
+}
+
 const { useState, useEffect } = React;
 
+// Çeviriler
 const translations = {
   tr: {
     welcome: "Kyrosil Points'e Hoş Geldiniz",
@@ -55,6 +61,7 @@ const translations = {
   }
 };
 
+// Context ve Provider
 const AppContext = React.createContext();
 
 const AppProvider = ({ children }) => {
@@ -112,14 +119,22 @@ const AppProvider = ({ children }) => {
   };
 
   return (
-    <AppContext.Provider value={{ user, setUser, points, setPoints, purchasedItems, setPurchasedItems, streak, setStreak, lastLogin, setLastLogin, lang, setLang, error, setError, gameResult, setGameResult, wheelSpinning, setWheelSpinning, wheelResult, setWheelResult, marketItems, saveUserData, redeemCode }}>
+    <AppContext.Provider value={{
+      user, setUser, points, setPoints, purchasedItems, setPurchasedItems,
+      streak, setStreak, lastLogin, setLastLogin, lang, setLang,
+      error, setError, gameResult, setGameResult, wheelSpinning, setWheelSpinning,
+      wheelResult, setWheelResult, marketItems, saveUserData, redeemCode
+    }}>
       {children}
     </AppContext.Provider>
   );
 };
 
-// Global erişim için
-if (typeof window !== 'undefined') {
-  window.AppProvider = AppProvider;
-  window.AppContext = AppContext;
+// Global export
+window.AppProvider = AppProvider;
+window.AppContext = AppContext;
+
+// Export kontrolü
+if (!window.AppProvider || !window.AppContext) {
+  console.error('AppProvider veya AppContext export edilemedi!');
 }
